@@ -20,9 +20,13 @@ export default class HomeScreen extends React.Component {
     this.state = {
       minutes_for_travel_driving: 0,
       minutes_for_travel_transit: 0,
+      minutes_for_travel_bicycling: 0,
       mode_of_transporation: ''
     }
     this._onPressButton = this._onPressButton.bind(this)
+    this.getBikeRoute = this.getBikeRoute.bind(this)
+    this.getTransitRoute = this.getTransitRoute.bind(this)
+    this.getDrivingRoute = this.getDrivingRoute.bind(this)
   }
   static navigationOptions = {
     header: null,
@@ -40,10 +44,35 @@ export default class HomeScreen extends React.Component {
     var cal = await Expo.Calendar.getCalendarsAsync();
   }
 
-  _onPressButton() {
+  getBikeRoute() {
+    let path_driving = ApiConstants.BASE_MAPS_URL + 
+    'distancematrix/json?origins=Uddevallavägen+5,+442+30+Kungälv&destinations=Hjalmar+Brantingsplatsen,+Göteborg&mode=bicycling&language=en-EN&traffic_mode=optimistic&departure_time=1549411671&key=' + MAPS_API_KEY
+    
+    axios.get(path_driving)
+      .then(response => {
+        this.setState({
+          minutes_for_travel_bicycling: response.data.rows[0].elements[0].duration_in_traffic.value
+        })
+      })
+      .catch(error => console.error(error))
+  }
+
+  getTransitRoute() {
+    let path_transit = ApiConstants.BASE_MAPS_URL + 
+    'distancematrix/json?origins=Uddevallavägen+5,+442+30+Kungälv&destinations=Hjalmar+Brantingsplatsen,+Göteborg&mode=transit&language=en-EN&departure_time=1549411671&key=' + MAPS_API_KEY
+    
+    axios.get(path_transit)
+      .then(response => {
+        this.setState({
+          minutes_for_travel_transit: response.data.rows[0].elements[0].duration.value
+        })
+      })
+      .catch(error => console.error(error))
+  }
+
+  getDrivingRoute() {
     let path_driving = ApiConstants.BASE_MAPS_URL + 
     'distancematrix/json?origins=Uddevallavägen+5,+442+30+Kungälv&destinations=Hjalmar+Brantingsplatsen,+Göteborg&mode=driving&language=en-EN&traffic_mode=pessimistic&departure_time=1549411671&key=' + MAPS_API_KEY
-    
     axios.get(path_driving)
       .then(response => {
         this.setState({
@@ -51,19 +80,18 @@ export default class HomeScreen extends React.Component {
         })
       })
       .catch(error => console.error(error))
+  }
 
-      let path_transit = ApiConstants.BASE_MAPS_URL + 
-      'distancematrix/json?origins=Uddevallavägen+5,+442+30+Kungälv&destinations=Hjalmar+Brantingsplatsen,+Göteborg&mode=transit&language=en-EN&departure_time=1549411671&key=' + MAPS_API_KEY
-      
-      axios.get(path_transit)
-      .then(response => {
+  _onPressButton() {
+    
+      this.getDrivingRoute()
+      this.getTransitRoute()
+
+      if (this.state.minutes_for_travel_biking < this.state.minutes_for_travel_transit) {
         this.setState({
-          minutes_for_travel_transit: response.data.rows[0].elements[0].duration.value
-        })
-      })
-      .catch(error => console.error(error))
-
-      if(this.state.minutes_for_travel_driving <= this.state.minutes_for_travel_transit) {
+          mode_of_transporation: 'Bike'
+        })      
+      } else if(this.state.minutes_for_travel_driving <= this.state.minutes_for_travel_transit) {
         this.setState({
           mode_of_transporation: 'Bus'
         })
