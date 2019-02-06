@@ -1,0 +1,14 @@
+{
+  "scripts": {
+    "start": "node index.js",
+    "broker": "node broker.js",
+    "dev-sub": "node subscriber.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "mosca": "^2.8.3",
+    "mqtt": "^2.18.8",
+    "mqtt-server": "^0.1.0"
+  }
+}
